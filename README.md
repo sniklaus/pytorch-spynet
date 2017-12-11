@@ -1,7 +1,9 @@
 # pytorch-spynet
 This is a personal reimplementation of Optical Flow Estimation using a Spatial Pyramid Network [1] using PyTorch. Should you be making use of this work, please cite the paper accordingly. Also, make sure to adhere to the <a href="https://github.com/anuragranj/spynet#license">licensing terms</a> of the authors. Should you be making use of this particular implementation, please acknowledge it appropriately.
 
-For the original Torch version of this work, please see: https://github.com/sniklaus/torch-sepconv
+<a href="https://arxiv.org/abs/1611.00850" rel="Paper"><img src="http://www.arxiv-sanity.com/static/thumbs/1611.00850v1.pdf.jpg" alt="Paper" width="100%"></a>
+
+For the original Torch version of this work, please see: https://github.com/anuragranj/spynet
 
 ## setup
 To download the pre-trained networks, run `bash install.bash` and make sure that you have Torch installed. The pre-trained networks are obtained from the original repository of the authors and are converted using a Torch script. While it would be nice to provide the converted weights myself and thus being able to avoid the initial Torch dependency, I do not know whether I would have the rights to do so. However, Torch is no longer required after the conversion.
