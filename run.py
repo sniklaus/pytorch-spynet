@@ -130,7 +130,7 @@ class Network(torch.nn.Module):
 
 		self.modulePreprocess = Preprocess()
 
-		self.moduleBasic = torch.nn.ModuleList([ Basic(intLevel).cuda() for intLevel in range(6) ])
+		self.moduleBasic = torch.nn.ModuleList([ Basic(intLevel) for intLevel in range(6) ])
 
 		self.moduleBackward = Backward()
 	# end
