@@ -5,6 +5,10 @@ require 'cudnn'
 
 ----------------------------------------------------------
 
+os.execute('git clone https://github.com/anuragranj/spynet')
+
+----------------------------------------------------------
+
 require('lfs').mkdir(('./models'))
 
 for strFile in require('lfs').dir('./spynet/models') do

@@ -1,0 +1,1 @@
+These weights originate from the models trained by the original authors: https://github.com/anuragranj/spynet

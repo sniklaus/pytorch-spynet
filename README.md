@@ -5,9 +5,6 @@ This is a personal reimplementation of Optical Flow Estimation using a Spatial P
 
 For the original Torch version of this work, please see: https://github.com/anuragranj/spynet
 
-## setup
-To download the pre-trained networks, run `bash install.bash` and make sure that you have Torch installed. The pre-trained networks are obtained from the original repository of the authors and are converted using a Torch script. While it would be nice to provide the converted weights myself and thus being able to avoid the initial Torch dependency, I do not know whether I would have the rights to do so. However, Torch is no longer required after the conversion.
-
 ## usage
 To run it on your own pair of images, use the following command. You can choose between various models, please make sure to see their paper / the code for more details.
 
