@@ -120,11 +120,11 @@ class Network(torch.nn.Module):
 					self.tensorGrid = torch.cat([ torchHorizontal, torchVertical ], 1).cuda()
 				# end
 
+				variableGrid = torch.autograd.Variable(data=self.tensorGrid, volatile=not self.training)
+
 				variableFlow = torch.cat([ variableFlow[:, 0:1, :, :] / ((variableInput.size(3) - 1.0) / 2.0), variableFlow[:, 1:2, :, :] / ((variableInput.size(2) - 1.0) / 2.0) ], 1)
 
-				variableGrid = torch.autograd.Variable(data=self.tensorGrid, volatile=not self.training) + variableFlow
-
-				return torch.nn.functional.grid_sample(input=variableInput, grid=variableGrid.clamp(-1.0, 1.0).permute(0, 2, 3, 1), mode='bilinear')
+				return torch.nn.functional.grid_sample(input=variableInput, grid=(variableGrid + variableFlow).permute(0, 2, 3, 1), mode='bilinear', padding_mode='border')
 			# end
 		# end
 
@@ -204,8 +204,8 @@ def estimate(tensorInputFirst, tensorInputSecond):
 ##########################################################
 
 if __name__ == '__main__':
-	tensorInputFirst = torch.FloatTensor(numpy.rollaxis(numpy.asarray(PIL.Image.open(arguments_strFirst))[:,:,::-1], 2, 0).astype(numpy.float32) / 255.0)
-	tensorInputSecond = torch.FloatTensor(numpy.rollaxis(numpy.asarray(PIL.Image.open(arguments_strSecond))[:,:,::-1], 2, 0).astype(numpy.float32) / 255.0)
+	tensorInputFirst = torch.FloatTensor(numpy.rollaxis(numpy.asarray(PIL.Image.open(arguments_strFirst))[:, :, ::-1], 2, 0).astype(numpy.float32) / 255.0)
+	tensorInputSecond = torch.FloatTensor(numpy.rollaxis(numpy.asarray(PIL.Image.open(arguments_strSecond))[:, :, ::-1], 2, 0).astype(numpy.float32) / 255.0)
 
 	tensorOutput = estimate(tensorInputFirst, tensorInputSecond)
 
