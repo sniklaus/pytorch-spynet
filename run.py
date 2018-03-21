@@ -148,13 +148,13 @@ class Network(torch.nn.Module):
 			# end
 		# end
 
-		variableFlow = torch.autograd.Variable(data=torch.zeros(variableFirst[0].size(0), 2, math.floor(variableFirst[0].size(2) / 2.0), math.floor(variableFirst[0].size(3) / 2.0)).cuda(), volatile=not self.training)
+		variableFlow = torch.autograd.Variable(data=torch.zeros(variableFirst[0].size(0), 2, int(math.floor(variableFirst[0].size(2) / 2.0)), int(math.floor(variableFirst[0].size(3) / 2.0))).cuda(), volatile=not self.training)
 
 		for intLevel in range(len(variableFirst)):
 			variableUpsampled = torch.nn.functional.upsample(input=variableFlow, scale_factor=2, mode='bilinear') * 2.0
 
-			if variableUpsampled.size(2) != variableFirst[intLevel].size(2): variableUpsampled = torch.nn.functional.pad(variableUpsampled, [0, 0, 0, 1], 'replicate')
-			if variableUpsampled.size(3) != variableFirst[intLevel].size(3): variableUpsampled = torch.nn.functional.pad(variableUpsampled, [0, 1, 0, 0], 'replicate')
+			if variableUpsampled.size(2) != variableFirst[intLevel].size(2): variableUpsampled = torch.nn.functional.pad(input=variableUpsampled, pad=[0, 0, 0, 1], mode='replicate')
+			if variableUpsampled.size(3) != variableFirst[intLevel].size(3): variableUpsampled = torch.nn.functional.pad(input=variableUpsampled, pad=[0, 1, 0, 0], mode='replicate')
 
 			variableFlow = self.moduleBasic[intLevel](torch.cat([ variableFirst[intLevel], self.moduleBackward(variableSecond[intLevel], variableUpsampled), variableUpsampled ], 1)) + variableUpsampled
 		# end
