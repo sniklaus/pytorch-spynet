@@ -204,8 +204,8 @@ def estimate(tensorInputFirst, tensorInputSecond):
 ##########################################################
 
 if __name__ == '__main__':
-	tensorInputFirst = torch.FloatTensor(numpy.rollaxis(numpy.asarray(PIL.Image.open(arguments_strFirst))[:, :, ::-1], 2, 0).astype(numpy.float32) / 255.0)
-	tensorInputSecond = torch.FloatTensor(numpy.rollaxis(numpy.asarray(PIL.Image.open(arguments_strSecond))[:, :, ::-1], 2, 0).astype(numpy.float32) / 255.0)
+	tensorInputFirst = torch.FloatTensor(numpy.asarray(PIL.Image.open(arguments_strFirst))[:, :, ::-1].transpose(2, 0, 1).astype(numpy.float32) / 255.0)
+	tensorInputSecond = torch.FloatTensor(numpy.asarray(PIL.Image.open(arguments_strSecond))[:, :, ::-1].transpose(2, 0, 1).astype(numpy.float32) / 255.0)
 
 	tensorOutput = estimate(tensorInputFirst, tensorInputSecond)
 
@@ -213,12 +213,7 @@ if __name__ == '__main__':
 
 	numpy.array([80, 73, 69, 72], numpy.uint8).tofile(objectOutput)
 	numpy.array([tensorOutput.size(2), tensorOutput.size(1)], numpy.int32).tofile(objectOutput)
-
-	for intY in range(tensorOutput.size(1)):
-		for intX in range(tensorOutput.size(2)):
-			numpy.array([ tensorOutput[0, intY, intX], tensorOutput[1, intY, intX] ], numpy.float32).tofile(objectOutput)
-		# end
-	# end
+	numpy.array(tensorOutput.permute(1, 2, 0), numpy.float32).tofile(objectOutput)
 
 	objectOutput.close()
 # end
