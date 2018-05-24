@@ -14,11 +14,11 @@ import torch.utils.serialization
 
 assert(int(torch.__version__.replace('.', '')) >= 40) # requires at least pytorch version 0.4.0
 
-torch.set_grad_enabled(False)
+torch.set_grad_enabled(False) # make sure to not compute gradients for computational performance
 
-torch.cuda.device(1)
+torch.cuda.device(1) # change this if you have a multiple graphics cards and you want to utilize them
 
-torch.backends.cudnn.enabled = True
+torch.backends.cudnn.enabled = True # make sure to use cudnn for computational performance
 
 ##########################################################
 
@@ -159,7 +159,7 @@ class Network(torch.nn.Module):
 		tensorFlow = torch.FloatTensor(tensorFirst[0].size(0), 2, int(math.floor(tensorFirst[0].size(2) / 2.0)), int(math.floor(tensorFirst[0].size(3) / 2.0))).zero_().cuda()
 
 		for intLevel in range(len(tensorFirst)):
-			tensorUpsampled = torch.nn.functional.upsample(input=tensorFlow, scale_factor=2, mode='bilinear', align_corners=False) * 2.0
+			tensorUpsampled = torch.nn.functional.upsample(input=tensorFlow, scale_factor=2, mode='bilinear', align_corners=False) * 2.0 # align_corners might need to be set to True to mimic the original implementation
 
 			if tensorUpsampled.size(2) != tensorFirst[intLevel].size(2): tensorUpsampled = torch.nn.functional.pad(input=tensorUpsampled, pad=[ 0, 0, 0, 1 ], mode='replicate')
 			if tensorUpsampled.size(3) != tensorFirst[intLevel].size(3): tensorUpsampled = torch.nn.functional.pad(input=tensorUpsampled, pad=[ 0, 1, 0, 0 ], mode='replicate')
