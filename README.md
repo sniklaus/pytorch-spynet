@@ -4,6 +4,8 @@ This is a personal reimplementation of Optical Flow Estimation using a Spatial P
 <a href="https://arxiv.org/abs/1611.00850" rel="Paper"><img src="http://www.arxiv-sanity.com/static/thumbs/1611.00850v1.pdf.jpg" alt="Paper" width="100%"></a>
 
 For the original Torch version of this work, please see: https://github.com/anuragranj/spynet
+<br />
+Another optical flow implementation from me: https://github.com/sniklaus/pytorch-pwc
 
 ## usage
 To run it on your own pair of images, use the following command. You can choose between various models, please make sure to see their paper / the code for more details.
