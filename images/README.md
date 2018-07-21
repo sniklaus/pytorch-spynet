@@ -1,1 +1,1 @@
-The used example originates from the Middlebury benchmark for Optical Flow: http://vision.middlebury.edu/flow
+The used example originates from the MPI Sintel Dataset: http://sintel.is.tue.mpg.de/

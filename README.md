@@ -14,7 +14,10 @@ To run it on your own pair of images, use the following command. You can choose 
 python run.py --model sintel-final --first ./images/first.png --second ./images/second.png --out ./out.flo
 ```
 
-I am afraid that cannot guarantee that this reimplementation is correct. However, it produced results identical to the implementation of the original authors in the examples that I tried. Please feel free to contribute to this repository by submitting issues and pull requests.
+I am afraid that I cannot guarantee that this reimplementation is correct. However, it produced results identical to the implementation of the original authors in the examples that I tried. Please feel free to contribute to this repository by submitting issues and pull requests.
+
+## comparison
+<p align="center"><img src="comparison/comparison.gif?raw=truef" alt="Comparison"></p>
 
 ## license
 As stated in the <a href="https://github.com/anuragranj/spynet#license">licensing terms</a> of the authors of the paper, the models are free for non-commercial and scientific research purpose. Please make sure to further consult their licensing terms.

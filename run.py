@@ -159,7 +159,7 @@ class Network(torch.nn.Module):
 		tensorFlow = torch.FloatTensor(tensorFirst[0].size(0), 2, int(math.floor(tensorFirst[0].size(2) / 2.0)), int(math.floor(tensorFirst[0].size(3) / 2.0))).zero_().cuda()
 
 		for intLevel in range(len(tensorFirst)):
-			tensorUpsampled = torch.nn.functional.upsample(input=tensorFlow, scale_factor=2, mode='bilinear', align_corners=False) * 2.0 # align_corners might need to be set to True to mimic the original implementation
+			tensorUpsampled = torch.nn.functional.upsample(input=tensorFlow, scale_factor=2, mode='bilinear', align_corners=True) * 2.0
 
 			if tensorUpsampled.size(2) != tensorFirst[intLevel].size(2): tensorUpsampled = torch.nn.functional.pad(input=tensorUpsampled, pad=[ 0, 0, 0, 1 ], mode='replicate')
 			if tensorUpsampled.size(3) != tensorFirst[intLevel].size(3): tensorUpsampled = torch.nn.functional.pad(input=tensorUpsampled, pad=[ 0, 1, 0, 0 ], mode='replicate')
@@ -184,8 +184,8 @@ def estimate(tensorInputFirst, tensorInputSecond):
 	intWidth = tensorInputFirst.size(2)
 	intHeight = tensorInputFirst.size(1)
 
-	assert(intWidth == 640) # remember that there is no guarantee for correctness, comment this line out if you acknowledge this and want to continue
-	assert(intHeight == 480) # remember that there is no guarantee for correctness, comment this line out if you acknowledge this and want to continue
+	assert(intWidth == 1024) # remember that there is no guarantee for correctness, comment this line out if you acknowledge this and want to continue
+	assert(intHeight == 416) # remember that there is no guarantee for correctness, comment this line out if you acknowledge this and want to continue
 
 	if True:
 		tensorInputFirst = tensorInputFirst.cuda()
@@ -197,7 +197,16 @@ def estimate(tensorInputFirst, tensorInputSecond):
 		tensorPreprocessedFirst = tensorInputFirst.view(1, 3, intHeight, intWidth)
 		tensorPreprocessedSecond = tensorInputSecond.view(1, 3, intHeight, intWidth)
 
-		tensorOutput.resize_(2, intHeight, intWidth).copy_(moduleNetwork(tensorPreprocessedFirst, tensorPreprocessedSecond)[0, :, :, :])
+		intWidth = int(math.floor(math.ceil(intWidth / 32.0) * 32.0))
+		intHeight = int(math.floor(math.ceil(intHeight / 32.0) * 32.0))
+
+		tensorPreprocessedFirst = torch.nn.functional.upsample(input=tensorPreprocessedFirst, size=(intHeight, intWidth), mode='bilinear', align_corners=False)
+		tensorPreprocessedSecond = torch.nn.functional.upsample(input=tensorPreprocessedSecond, size=(intHeight, intWidth), mode='bilinear', align_corners=False)
+
+		intWidth = tensorInputFirst.size(2)
+		intHeight = tensorInputFirst.size(1)
+
+		tensorOutput.resize_(2, intHeight, intWidth).copy_(torch.nn.functional.upsample(input=moduleNetwork(tensorPreprocessedFirst, tensorPreprocessedSecond), size=(intHeight, intWidth), mode='bilinear', align_corners=False)[0, :, :, :])
 	# end
 
 	if True:
