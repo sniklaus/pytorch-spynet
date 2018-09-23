@@ -156,7 +156,7 @@ class Network(torch.nn.Module):
 			# end
 		# end
 
-		tensorFlow = torch.FloatTensor(tensorFirst[0].size(0), 2, int(math.floor(tensorFirst[0].size(2) / 2.0)), int(math.floor(tensorFirst[0].size(3) / 2.0))).zero_().cuda()
+		tensorFlow = tensorFirst[0].new_zeros(tensorFirst[0].size(0), 2, int(math.floor(tensorFirst[0].size(2) / 2.0)), int(math.floor(tensorFirst[0].size(3) / 2.0)))
 
 		for intLevel in range(len(tensorFirst)):
 			tensorUpsampled = torch.nn.functional.upsample(input=tensorFlow, scale_factor=2, mode='bilinear', align_corners=True) * 2.0
@@ -171,31 +171,31 @@ class Network(torch.nn.Module):
 	# end
 # end
 
-moduleNetwork = Network().cuda()
+moduleNetwork = Network().cuda().eval()
 
 ##########################################################
 
-def estimate(tensorInputFirst, tensorInputSecond):
+def estimate(tensorFirst, tensorSecond):
 	tensorOutput = torch.FloatTensor()
 
-	assert(tensorInputFirst.size(1) == tensorInputSecond.size(1))
-	assert(tensorInputFirst.size(2) == tensorInputSecond.size(2))
+	assert(tensorFirst.size(1) == tensorSecond.size(1))
+	assert(tensorFirst.size(2) == tensorSecond.size(2))
 
-	intWidth = tensorInputFirst.size(2)
-	intHeight = tensorInputFirst.size(1)
+	intWidth = tensorFirst.size(2)
+	intHeight = tensorFirst.size(1)
 
 	assert(intWidth == 1024) # remember that there is no guarantee for correctness, comment this line out if you acknowledge this and want to continue
 	assert(intHeight == 416) # remember that there is no guarantee for correctness, comment this line out if you acknowledge this and want to continue
 
 	if True:
-		tensorInputFirst = tensorInputFirst.cuda()
-		tensorInputSecond = tensorInputSecond.cuda()
+		tensorFirst = tensorFirst.cuda()
+		tensorSecond = tensorSecond.cuda()
 		tensorOutput = tensorOutput.cuda()
 	# end
 
 	if True:
-		tensorPreprocessedFirst = tensorInputFirst.view(1, 3, intHeight, intWidth)
-		tensorPreprocessedSecond = tensorInputSecond.view(1, 3, intHeight, intWidth)
+		tensorPreprocessedFirst = tensorFirst.view(1, 3, intHeight, intWidth)
+		tensorPreprocessedSecond = tensorSecond.view(1, 3, intHeight, intWidth)
 
 		intPreprocessedWidth = int(math.floor(math.ceil(intWidth / 32.0) * 32.0))
 		intPreprocessedHeight = int(math.floor(math.ceil(intHeight / 32.0) * 32.0))
@@ -212,8 +212,8 @@ def estimate(tensorInputFirst, tensorInputSecond):
 	# end
 
 	if True:
-		tensorInputFirst = tensorInputFirst.cpu()
-		tensorInputSecond = tensorInputSecond.cpu()
+		tensorFirst = tensorFirst.cpu()
+		tensorSecond = tensorSecond.cpu()
 		tensorOutput = tensorOutput.cpu()
 	# end
 
@@ -223,16 +223,16 @@ def estimate(tensorInputFirst, tensorInputSecond):
 ##########################################################
 
 if __name__ == '__main__':
-	tensorInputFirst = torch.FloatTensor(numpy.array(PIL.Image.open(arguments_strFirst))[:, :, ::-1].transpose(2, 0, 1).astype(numpy.float32) / 255.0)
-	tensorInputSecond = torch.FloatTensor(numpy.array(PIL.Image.open(arguments_strSecond))[:, :, ::-1].transpose(2, 0, 1).astype(numpy.float32) / 255.0)
+	tensorFirst = torch.FloatTensor(numpy.array(PIL.Image.open(arguments_strFirst))[:, :, ::-1].transpose(2, 0, 1).astype(numpy.float32) * (1.0 / 255.0))
+	tensorSecond = torch.FloatTensor(numpy.array(PIL.Image.open(arguments_strSecond))[:, :, ::-1].transpose(2, 0, 1).astype(numpy.float32) * (1.0 / 255.0))
 
-	tensorOutput = estimate(tensorInputFirst, tensorInputSecond)
+	tensorOutput = estimate(tensorFirst, tensorSecond)
 
 	objectOutput = open(arguments_strOut, 'wb')
 
 	numpy.array([ 80, 73, 69, 72 ], numpy.uint8).tofile(objectOutput)
 	numpy.array([ tensorOutput.size(2), tensorOutput.size(1) ], numpy.int32).tofile(objectOutput)
-	numpy.array(tensorOutput.permute(1, 2, 0), numpy.float32).tofile(objectOutput)
+	numpy.array(tensorOutput.numpy().transpose(1, 2, 0), numpy.float32).tofile(objectOutput)
 
 	objectOutput.close()
 # end
