@@ -25,7 +25,7 @@ torch.backends.cudnn.enabled = True # make sure to use cudnn for computational p
 arguments_strModel = 'sintel-final'
 arguments_strFirst = './images/first.png'
 arguments_strSecond = './images/second.png'
-arguments_strOut = './result.flo'
+arguments_strOut = './out.flo'
 
 for strOption, strArgument in getopt.getopt(sys.argv[1:], '', [ strParameter[2:] + '=' for strParameter in sys.argv[1::2] ])[0]:
 	if strOption == '--model':
@@ -72,13 +72,9 @@ class Network(torch.nn.Module):
 			# end
 
 			def forward(self, tensorInput):
-				tensorBlue = tensorInput[:, 0:1, :, :] - 0.406
-				tensorGreen = tensorInput[:, 1:2, :, :] - 0.456
-				tensorRed = tensorInput[:, 2:3, :, :] - 0.485
-
-				tensorBlue = tensorBlue / 0.225
-				tensorGreen = tensorGreen / 0.224
-				tensorRed = tensorRed / 0.229
+				tensorBlue = (tensorInput[:, 0:1, :, :] - 0.406) / 0.225
+				tensorGreen = (tensorInput[:, 1:2, :, :] - 0.456) / 0.224
+				tensorRed = (tensorInput[:, 2:3, :, :] - 0.485) / 0.229
 
 				return torch.cat([ tensorRed, tensorGreen, tensorBlue ], 1)
 			# end
