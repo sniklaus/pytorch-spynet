@@ -6,6 +6,11 @@ This is a personal reimplementation of Optical Flow Estimation using a Spatial P
 For the original Torch version of this work, please see: https://github.com/anuragranj/spynet
 <br />
 Another optical flow implementation from me: https://github.com/sniklaus/pytorch-pwc
+<br />
+And another optical flow implementation from me: https://github.com/sniklaus/pytorch-unflow
+
+## setup
+To download the pre-trained models, run `bash download.bash`. These originate from the original authors, I just converted them to PyTorch.
 
 ## usage
 To run it on your own pair of images, use the following command. You can choose between various models, please make sure to see their paper / the code for more details.

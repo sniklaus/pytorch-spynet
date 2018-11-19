@@ -35,23 +35,6 @@ for strOption, strArgument in getopt.getopt(sys.argv[1:], '', [ strParameter[2:]
 	if strOption == '--out' and strArgument != '': arguments_strOut = strArgument # path to where the output should be stored
 # end
 
-if arguments_strModel == 'chairs-clean':
-	arguments_strModel = '4'
-	
-elif arguments_strModel == 'chairs-final':
-	arguments_strModel = '3'
-	
-elif arguments_strModel == 'sintel-clean':
-	arguments_strModel = 'C'
-	
-elif arguments_strModel == 'sintel-final':
-	arguments_strModel = 'F'
-	
-elif arguments_strModel == 'kitti-final':
-	arguments_strModel = 'K'
-
-# end
-
 ##########################################################
 
 class Network(torch.nn.Module):
@@ -87,17 +70,6 @@ class Network(torch.nn.Module):
 					torch.nn.ReLU(inplace=False),
 					torch.nn.Conv2d(in_channels=16, out_channels=2, kernel_size=7, stride=1, padding=3)
 				)
-
-				if intLevel == 5:
-					if arguments_strModel == '3' or arguments_strModel == '4':
-						intLevel = 4 # the models trained on the flying chairs dataset do not come with weights for the sixth layer
-					# end
-				# end
-
-				for intConv in range(5):
-					self.moduleBasic[intConv * 2].weight.data.copy_(torch.utils.serialization.load_lua('./models/modelL' + str(intLevel + 1) + '_' + arguments_strModel  + '-' + str(intConv + 1) + '-weight.t7'))
-					self.moduleBasic[intConv * 2].bias.data.copy_(torch.utils.serialization.load_lua('./models/modelL' + str(intLevel + 1) + '_' + arguments_strModel  + '-' + str(intConv + 1) + '-bias.t7'))
-				# end
 			# end
 
 			def forward(self, tensorInput):
@@ -129,6 +101,8 @@ class Network(torch.nn.Module):
 		self.moduleBasic = torch.nn.ModuleList([ Basic(intLevel) for intLevel in range(6) ])
 
 		self.moduleBackward = Backward()
+
+		self.load_state_dict(torch.load('./network-' + arguments_strModel + '.pytorch'))
 	# end
 
 	def forward(self, tensorFirst, tensorSecond):
