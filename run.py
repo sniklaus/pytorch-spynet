@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import torch
-import torch.utils.serialization
 
 import getopt
 import math
@@ -13,7 +12,7 @@ import sys
 
 ##########################################################
 
-assert(int(torch.__version__.replace('.', '')) >= 40) # requires at least pytorch version 0.4.0
+assert(int(str('').join(torch.__version__.split('.')[0:3])) >= 40) # requires at least pytorch version 0.4.0
 
 torch.set_grad_enabled(False) # make sure to not compute gradients for computational performance
 
@@ -33,6 +32,23 @@ for strOption, strArgument in getopt.getopt(sys.argv[1:], '', [ strParameter[2:]
 	if strOption == '--first' and strArgument != '': arguments_strFirst = strArgument # path to the first frame
 	if strOption == '--second' and strArgument != '': arguments_strSecond = strArgument # path to the second frame
 	if strOption == '--out' and strArgument != '': arguments_strOut = strArgument # path to where the output should be stored
+# end
+
+##########################################################
+
+Backward_tensorGrid = {}
+
+def Backward(tensorInput, tensorFlow):
+	if str(tensorFlow.size()) not in Backward_tensorGrid:
+		tensorHorizontal = torch.linspace(-1.0, 1.0, tensorFlow.size(3)).view(1, 1, 1, tensorFlow.size(3)).expand(tensorFlow.size(0), -1, tensorFlow.size(2), -1)
+		tensorVertical = torch.linspace(-1.0, 1.0, tensorFlow.size(2)).view(1, 1, tensorFlow.size(2), 1).expand(tensorFlow.size(0), -1, -1, tensorFlow.size(3))
+
+		Backward_tensorGrid[str(tensorFlow.size())] = torch.cat([ tensorHorizontal, tensorVertical ], 1).cuda()
+	# end
+
+	tensorFlow = torch.cat([ tensorFlow[:, 0:1, :, :] / ((tensorInput.size(3) - 1.0) / 2.0), tensorFlow[:, 1:2, :, :] / ((tensorInput.size(2) - 1.0) / 2.0) ], 1)
+
+	return torch.nn.functional.grid_sample(input=tensorInput, grid=(Backward_tensorGrid[str(tensorFlow.size())] + tensorFlow).permute(0, 2, 3, 1), mode='bilinear', padding_mode='border')
 # end
 
 ##########################################################
@@ -77,30 +93,9 @@ class Network(torch.nn.Module):
 			# end
 		# end
 
-		class Backward(torch.nn.Module):
-			def __init__(self):
-				super(Backward, self).__init__()
-			# end
-
-			def forward(self, tensorInput, tensorFlow):
-				if hasattr(self, 'tensorGrid') == False or self.tensorGrid.size(0) != tensorFlow.size(0) or self.tensorGrid.size(2) != tensorFlow.size(2) or self.tensorGrid.size(3) != tensorFlow.size(3):
-					tensorHorizontal = torch.linspace(-1.0, 1.0, tensorFlow.size(3)).view(1, 1, 1, tensorFlow.size(3)).expand(tensorFlow.size(0), -1, tensorFlow.size(2), -1)
-					tensorVertical = torch.linspace(-1.0, 1.0, tensorFlow.size(2)).view(1, 1, tensorFlow.size(2), 1).expand(tensorFlow.size(0), -1, -1, tensorFlow.size(3))
-
-					self.tensorGrid = torch.cat([ tensorHorizontal, tensorVertical ], 1).cuda()
-				# end
-
-				tensorFlow = torch.cat([ tensorFlow[:, 0:1, :, :] / ((tensorInput.size(3) - 1.0) / 2.0), tensorFlow[:, 1:2, :, :] / ((tensorInput.size(2) - 1.0) / 2.0) ], 1)
-
-				return torch.nn.functional.grid_sample(input=tensorInput, grid=(self.tensorGrid + tensorFlow).permute(0, 2, 3, 1), mode='bilinear', padding_mode='border')
-			# end
-		# end
-
 		self.modulePreprocess = Preprocess()
 
 		self.moduleBasic = torch.nn.ModuleList([ Basic(intLevel) for intLevel in range(6) ])
-
-		self.moduleBackward = Backward()
 
 		self.load_state_dict(torch.load('./network-' + arguments_strModel + '.pytorch'))
 	# end
@@ -126,7 +121,7 @@ class Network(torch.nn.Module):
 			if tensorUpsampled.size(2) != tensorFirst[intLevel].size(2): tensorUpsampled = torch.nn.functional.pad(input=tensorUpsampled, pad=[ 0, 0, 0, 1 ], mode='replicate')
 			if tensorUpsampled.size(3) != tensorFirst[intLevel].size(3): tensorUpsampled = torch.nn.functional.pad(input=tensorUpsampled, pad=[ 0, 1, 0, 0 ], mode='replicate')
 
-			tensorFlow = self.moduleBasic[intLevel](torch.cat([ tensorFirst[intLevel], self.moduleBackward(tensorSecond[intLevel], tensorUpsampled), tensorUpsampled ], 1)) + tensorUpsampled
+			tensorFlow = self.moduleBasic[intLevel](torch.cat([ tensorFirst[intLevel], Backward(tensorInput=tensorSecond[intLevel], tensorFlow=tensorUpsampled), tensorUpsampled ], 1)) + tensorUpsampled
 		# end
 
 		return tensorFlow
