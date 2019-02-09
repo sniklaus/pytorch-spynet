@@ -1,5 +1,5 @@
 # pytorch-spynet
-This is a personal reimplementation of Optical Flow Estimation using a Spatial Pyramid Network [1] using PyTorch. Should you be making use of this work, please cite the paper accordingly. Also, make sure to adhere to the <a href="https://github.com/anuragranj/spynet#license">licensing terms</a> of the authors. Should you be making use of this particular implementation, please acknowledge it appropriately.
+This is a personal reimplementation of SPyNet [1] using PyTorch. Should you be making use of this work, please cite the paper accordingly. Also, make sure to adhere to the <a href="https://github.com/anuragranj/spynet#license">licensing terms</a> of the authors. Should you be making use of this particular implementation, please acknowledge it appropriately [2].
 
 <a href="https://arxiv.org/abs/1611.00850" rel="Paper"><img src="http://www.arxiv-sanity.com/static/thumbs/1611.00850v1.pdf.jpg" alt="Paper" width="100%"></a>
 
@@ -7,7 +7,9 @@ For the original Torch version of this work, please see: https://github.com/anur
 <br />
 Another optical flow implementation from me: https://github.com/sniklaus/pytorch-pwc
 <br />
-And another optical flow implementation from me: https://github.com/sniklaus/pytorch-unflow
+And another optical flow implementation from me: https://github.com/sniklaus/pytorch-liteflownet
+<br />
+Yet another optical flow implementation from me: https://github.com/sniklaus/pytorch-unflow
 
 ## setup
 To download the pre-trained models, run `bash download.bash`. These originate from the original authors, I just converted them to PyTorch.
@@ -35,4 +37,11 @@ As stated in the <a href="https://github.com/anuragranj/spynet#license">licensin
          booktitle = {IEEE Conference on Computer Vision and Pattern Recognition},
          year = {2017}
      }
+
+[2]  @misc{pytorch-spynet,
+         author = {Simon Niklaus},
+         title = {A Reimplementation of {SPyNet} Using {PyTorch}},
+         year = {2018},
+         howpublished = {\url{https://github.com/sniklaus/pytorch-spynet}}
+    }
 ```
