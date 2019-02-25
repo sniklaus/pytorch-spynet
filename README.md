@@ -37,7 +37,9 @@ As stated in the <a href="https://github.com/anuragranj/spynet#license">licensin
          booktitle = {IEEE Conference on Computer Vision and Pattern Recognition},
          year = {2017}
      }
+```
 
+```
 [2]  @misc{pytorch-spynet,
          author = {Simon Niklaus},
          title = {A Reimplementation of {SPyNet} Using {PyTorch}},
