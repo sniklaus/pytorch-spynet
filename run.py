@@ -34,19 +34,19 @@ for strOption, strArgument in getopt.getopt(sys.argv[1:], '', [ strParameter[2:]
 
 ##########################################################
 
-Backward_tensorGrid = {}
+backwarp_tensorGrid = {}
 
-def Backward(tensorInput, tensorFlow):
-	if str(tensorFlow.size()) not in Backward_tensorGrid:
-		tensorHorizontal = torch.linspace(-1.0, 1.0, tensorFlow.size(3)).view(1, 1, 1, tensorFlow.size(3)).expand(tensorFlow.size(0), -1, tensorFlow.size(2), -1)
-		tensorVertical = torch.linspace(-1.0, 1.0, tensorFlow.size(2)).view(1, 1, tensorFlow.size(2), 1).expand(tensorFlow.size(0), -1, -1, tensorFlow.size(3))
+def backwarp(tensorInput, tensorFlow):
+	if str(tensorFlow.size()) not in backwarp_tensorGrid:
+		tensorHorizontal = torch.linspace(-1.0, 1.0, tensorFlow.shape[3]).view(1, 1, 1, tensorFlow.shape[3]).expand(tensorFlow.shape[0], -1, tensorFlow.shape[2], -1)
+		tensorVertical = torch.linspace(-1.0, 1.0, tensorFlow.shape[2]).view(1, 1, tensorFlow.shape[2], 1).expand(tensorFlow.shape[0], -1, -1, tensorFlow.shape[3])
 
-		Backward_tensorGrid[str(tensorFlow.size())] = torch.cat([ tensorHorizontal, tensorVertical ], 1).cuda()
+		backwarp_tensorGrid[str(tensorFlow.size())] = torch.cat([ tensorHorizontal, tensorVertical ], 1).cuda()
 	# end
 
-	tensorFlow = torch.cat([ tensorFlow[:, 0:1, :, :] / ((tensorInput.size(3) - 1.0) / 2.0), tensorFlow[:, 1:2, :, :] / ((tensorInput.size(2) - 1.0) / 2.0) ], 1)
+	tensorFlow = torch.cat([ tensorFlow[:, 0:1, :, :] / ((tensorInput.shape[3] - 1.0) / 2.0), tensorFlow[:, 1:2, :, :] / ((tensorInput.shape[2] - 1.0) / 2.0) ], 1)
 
-	return torch.nn.functional.grid_sample(input=tensorInput, grid=(Backward_tensorGrid[str(tensorFlow.size())] + tensorFlow).permute(0, 2, 3, 1), mode='bilinear', padding_mode='border', align_corners=True)
+	return torch.nn.functional.grid_sample(input=tensorInput, grid=(backwarp_tensorGrid[str(tensorFlow.size())] + tensorFlow).permute(0, 2, 3, 1), mode='bilinear', padding_mode='border', align_corners=True)
 # end
 
 ##########################################################
@@ -95,7 +95,7 @@ class Network(torch.nn.Module):
 
 		self.moduleBasic = torch.nn.ModuleList([ Basic(intLevel) for intLevel in range(6) ])
 
-		self.load_state_dict(torch.load('./network-' + arguments_strModel + '.pytorch'))
+		self.load_state_dict(torch.load(__file__.replace('run.py', 'network-' + arguments_strModel + '.pytorch')))
 	# end
 
 	def forward(self, tensorFirst, tensorSecond):
@@ -105,37 +105,43 @@ class Network(torch.nn.Module):
 		tensorSecond = [ self.modulePreprocess(tensorSecond) ]
 
 		for intLevel in range(5):
-			if tensorFirst[0].size(2) > 32 or tensorFirst[0].size(3) > 32:
+			if tensorFirst[0].shape[2] > 32 or tensorFirst[0].shape[3] > 32:
 				tensorFirst.insert(0, torch.nn.functional.avg_pool2d(input=tensorFirst[0], kernel_size=2, stride=2, count_include_pad=False))
 				tensorSecond.insert(0, torch.nn.functional.avg_pool2d(input=tensorSecond[0], kernel_size=2, stride=2, count_include_pad=False))
 			# end
 		# end
 
-		tensorFlow = tensorFirst[0].new_zeros([ tensorFirst[0].size(0), 2, int(math.floor(tensorFirst[0].size(2) / 2.0)), int(math.floor(tensorFirst[0].size(3) / 2.0)) ])
+		tensorFlow = tensorFirst[0].new_zeros([ tensorFirst[0].shape[0], 2, int(math.floor(tensorFirst[0].shape[2] / 2.0)), int(math.floor(tensorFirst[0].shape[3] / 2.0)) ])
 
 		for intLevel in range(len(tensorFirst)):
 			tensorUpsampled = torch.nn.functional.interpolate(input=tensorFlow, scale_factor=2, mode='bilinear', align_corners=True) * 2.0
 
-			if tensorUpsampled.size(2) != tensorFirst[intLevel].size(2): tensorUpsampled = torch.nn.functional.pad(input=tensorUpsampled, pad=[ 0, 0, 0, 1 ], mode='replicate')
-			if tensorUpsampled.size(3) != tensorFirst[intLevel].size(3): tensorUpsampled = torch.nn.functional.pad(input=tensorUpsampled, pad=[ 0, 1, 0, 0 ], mode='replicate')
+			if tensorUpsampled.shape[2] != tensorFirst[intLevel].shape[2]: tensorUpsampled = torch.nn.functional.pad(input=tensorUpsampled, pad=[ 0, 0, 0, 1 ], mode='replicate')
+			if tensorUpsampled.shape[3] != tensorFirst[intLevel].shape[3]: tensorUpsampled = torch.nn.functional.pad(input=tensorUpsampled, pad=[ 0, 1, 0, 0 ], mode='replicate')
 
-			tensorFlow = self.moduleBasic[intLevel](torch.cat([ tensorFirst[intLevel], Backward(tensorInput=tensorSecond[intLevel], tensorFlow=tensorUpsampled), tensorUpsampled ], 1)) + tensorUpsampled
+			tensorFlow = self.moduleBasic[intLevel](torch.cat([ tensorFirst[intLevel], backwarp(tensorInput=tensorSecond[intLevel], tensorFlow=tensorUpsampled), tensorUpsampled ], 1)) + tensorUpsampled
 		# end
 
 		return tensorFlow
 	# end
 # end
 
-moduleNetwork = Network().cuda().eval()
+moduleNetwork = None
 
 ##########################################################
 
 def estimate(tensorFirst, tensorSecond):
-	assert(tensorFirst.size(1) == tensorSecond.size(1))
-	assert(tensorFirst.size(2) == tensorSecond.size(2))
+	global moduleNetwork
 
-	intWidth = tensorFirst.size(2)
-	intHeight = tensorFirst.size(1)
+	if moduleNetwork is None:
+		moduleNetwork = Network().cuda().eval()
+	# end
+
+	assert(tensorFirst.shape[1] == tensorSecond.shape[1])
+	assert(tensorFirst.shape[2] == tensorSecond.shape[2])
+
+	intWidth = tensorFirst.shape[2]
+	intHeight = tensorFirst.shape[1]
 
 	assert(intWidth == 1024) # remember that there is no guarantee for correctness, comment this line out if you acknowledge this and want to continue
 	assert(intHeight == 416) # remember that there is no guarantee for correctness, comment this line out if you acknowledge this and want to continue
@@ -168,7 +174,7 @@ if __name__ == '__main__':
 	objectOutput = open(arguments_strOut, 'wb')
 
 	numpy.array([ 80, 73, 69, 72 ], numpy.uint8).tofile(objectOutput)
-	numpy.array([ tensorOutput.size(2), tensorOutput.size(1) ], numpy.int32).tofile(objectOutput)
+	numpy.array([ tensorOutput.shape[2], tensorOutput.shape[1] ], numpy.int32).tofile(objectOutput)
 	numpy.array(tensorOutput.numpy().transpose(1, 2, 0), numpy.float32).tofile(objectOutput)
 
 	objectOutput.close()
