@@ -11,9 +11,6 @@ And another optical flow implementation from me: https://github.com/sniklaus/pyt
 <br />
 Yet another optical flow implementation from me: https://github.com/sniklaus/pytorch-unflow
 
-## setup
-To download the pre-trained models, run `bash download.bash`. These originate from the original authors, I just converted them to PyTorch.
-
 ## usage
 To run it on your own pair of images, use the following command. You can choose between various models, please make sure to see their paper / the code for more details.
 
