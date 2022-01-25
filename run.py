@@ -61,11 +61,11 @@ class Network(torch.nn.Module):
 			# end
 
 			def forward(self, tenInput):
-				tenBlue = (tenInput[:, 0:1, :, :] - 0.406) / 0.225
-				tenGreen = (tenInput[:, 1:2, :, :] - 0.456) / 0.224
-				tenRed = (tenInput[:, 2:3, :, :] - 0.485) / 0.229
+                tenInput = tenInput.flip([1])
+                tenInput = tenInput - torch.tensor(data=[0.485, 0.456, 0.406], dtype=tenInput.dtype, device=tenInput.device).view(1, 3, 1, 1)
+                tenInput = tenInput * torch.tensor(data=[1.0 / 0.229, 1.0 / 0.224, 1.0 / 0.225], dtype=tenInput.dtype, device=tenInput.device).view(1, 3, 1, 1)
 
-				return torch.cat([ tenRed, tenGreen, tenBlue ], 1)
+                return tenInput
 			# end
 		# end
 
