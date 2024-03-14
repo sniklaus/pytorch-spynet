@@ -11,7 +11,7 @@ Other optical flow implementations from me: [pytorch-pwc](https://github.com/sni
 To run it on your own pair of images, use the following command. You can choose between various models, please make sure to see their paper / the code for more details.
 
 ```
-python run.py --model sintel-final --first ./images/first.png --second ./images/second.png --out ./out.flo
+python run.py --model sintel-final --one ./images/one.png --two ./images/two.png --out ./out.flo
 ```
 
 I am afraid that I cannot guarantee that this reimplementation is correct. However, it produced results identical to the implementation of the original authors in the examples that I tried. Please feel free to contribute to this repository by submitting issues and pull requests.
